@@ -14,6 +14,7 @@ const sequelize = new Sequelize(
   }
 );
 
+// define what type of data is gonna be stored in database
 const Framework = sequelize.define("frameworks", {
   name: {
     type: Sequelize.STRING
@@ -23,9 +24,26 @@ const Framework = sequelize.define("frameworks", {
   }
 });
 
-const typeDefs = gql``;
+// define what type of data expected from graphql
+const typeDefs = gql`
+  type Framework {
+    id: String
+    name: String
+    git: String
+  }
 
-const resolvers = {};
+  type Query {
+    frameworks: [Framework]
+  }
+`;
+
+// functions to use when calling on graphql playground
+const resolvers = {
+  Query: {
+    frameworks: () => Framework.findAll() // returns everything in  database (sequelize func)
+  }
+};
+
 const server = new ApolloServer({ typeDefs, resolvers });
 
 server.listen().then(({ url }) => {
