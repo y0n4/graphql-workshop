@@ -6,6 +6,8 @@ module.exports = gql`
     name: String
     git: String
     stars: Int
+    description: String
+    avatar: String
   }
 
   type Query {
