@@ -1,6 +1,6 @@
 const { ApolloServer, gql } = require("apollo-server");
 const Sequelize = require("sequelize");
-
+const axios = require("axios");
 require("dotenv").config({ path: "../.env" });
 
 const sequelize = new Sequelize(
@@ -16,12 +16,9 @@ const sequelize = new Sequelize(
 );
 
 const Framework = sequelize.define("frameworks", {
-  name: {
-    type: Sequelize.STRING
-  },
-  git: {
-    type: Sequelize.STRING
-  }
+  name: { type: Sequelize.STRING },
+  git: { type: Sequelize.STRING },
+  stars: { type: Sequelize.INTEGER, defaultValue: 0 }
 });
 Framework.sync();
 
@@ -32,6 +29,7 @@ const typeDefs = gql`
     id: String
     name: String
     git: String
+    stars: Int
   }
 
   type Query {
@@ -50,11 +48,15 @@ const resolvers = {
   Mutation: {
     addFramework: async (_, { name, git }) => {
       try {
-        const framework = await Framework.create({
+        // before saving framework to postgres, we use github api to find out how many stars it has
+        const frameworkURI = git.split("https://github.com/")[1];
+        const url = `https://api.github.com/repos/${frameworkURI}`; //github api with params
+        const githubData = await axios(url); //the information from github api
+        const framework = await Framework.create({ //save to postgres
           name,
-          git
+          git,
+          stars: githubData.data.stargazers_count //save github api star count
         });
-
         return framework;
       } catch (e) {
         throw new Error(e);
