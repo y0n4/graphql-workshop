@@ -21,9 +21,9 @@ const Framework = sequelize.define("frameworks", {
   git: {
     type: Sequelize.STRING
   },
-  stars: { type: Sequelize.INTEGER, defaultValue: 0 }
-  // description: { type: Sequelize.STRING, defaultValue: "" },
-  // avatar: { type: Sequelize.STRING, defaultValue: "" }
+  stars: { type: Sequelize.INTEGER, defaultValue: 0 },
+  description: { type: Sequelize.STRING, defaultValue: "" },
+  avatar: { type: Sequelize.STRING, defaultValue: "" },
 });
 
 // When changing the DB you will need to run this with force true that will clean the DB and add the new coloumns
@@ -39,17 +39,13 @@ module.exports = {
       try {
         const url = git.split("https://github.com/")[1];
         const gh = await axios(`https://api.github.com/repos/${url}`);
-
-        // data is at:
-        // description: gh.data.description,
-        //  avatar: gh.data.owner.avatar_url
-
         const framework = await Framework.create({
           name,
           git,
-          stars: gh.data.stargazers_count
+          stars: gh.data.stargazers_count,
+          description: gh.data.description,
+          avatar: gh.data.owner.avatar_url,
         });
-
         return framework;
       } catch (e) {
         throw new Error(e);
