@@ -44,12 +44,12 @@ const typeDefs = gql`
 
 const resolvers = {
   Query: {
-    frameworks: () => Framework.findAll()
+    frameworks: (_, __, context) => context.db.findAll()
   },
   Mutation: {
-    addFramework: async (_, { name, git }) => {
+    addFramework: async (_, { name, git }, context) => {
       try {
-        const framework = Framework.create({
+        const framework = context.db.create({
           name,
           git
         });
@@ -61,8 +61,12 @@ const resolvers = {
     }
   }
 };
-const server = new ApolloServer({ typeDefs, resolvers });
 
+const context = { // context is good when you're dealing with a database. it's better since you are saving "time" of always instantiating a new model and also testable for this
+  db: Framework
+}
+
+const server = new ApolloServer({ typeDefs, resolvers, context });
 server.listen().then(({ url }) => {
   console.log(`🚀  Server ready at ${url}`);
 });
